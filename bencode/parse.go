@@ -1,29 +1,45 @@
 package bencode
 
-import "crypto/sha1"
+import (
+	"crypto/sha1"
+)
 
 type bencodeInfo struct {
-	pieces      string
-	pieceLength int64
 	length      int64
 	name        string
+	pieceLength int64
+	pieces      string
 }
 
-type bencodeTorrent struct {
+type BencodeTorrent struct {
 	announce string
 	info     bencodeInfo
 }
 
 type TorrentInfo struct {
-	announce    string
-	infoHash    [20]byte
-	pieceHashes [][20]byte
-	pieceLength int64
-	length      int64
-	name        string
+	Announce    string
+	InfoHash    [20]byte
+	PieceHashes [][20]byte
+	PieceLength int64
+	Length      int64
+	Name        string
 }
 
 type BencodeValue interface{}
+
+func NewBencodeTorrent(result map[string]BencodeValue) *BencodeTorrent {
+	bto := &BencodeTorrent{
+		announce: result["announce"].(string),
+		info: bencodeInfo{
+			pieces:      result["info"].(map[string]BencodeValue)["pieces"].(string),
+			pieceLength: result["info"].(map[string]BencodeValue)["piece length"].(int64),
+			length:      result["info"].(map[string]BencodeValue)["length"].(int64),
+			name:        result["info"].(map[string]BencodeValue)["name"].(string),
+		},
+	}
+
+	return bto
+}
 
 func toHashes(pieces string) [][20]byte {
 	buf := []byte(pieces)
@@ -41,17 +57,21 @@ func toHashes(pieces string) [][20]byte {
 	return hashes
 }
 
-func (bto bencodeTorrent) toTorrentInfo() TorrentInfo {
-	h := sha1.New()
+func (bto BencodeTorrent) ToTorrentInfo() TorrentInfo {
+	encodedInfo := encodeInfo(bto.info)
+
+	// fmt.Println("ss", (sha1.Sum(encodedInfo)))
 
 	ti := TorrentInfo{
-		announce:    bto.announce,
-		infoHash:    [20]byte(h.Sum(encodeBencode(bto.info))),
-		pieceHashes: toHashes(bto.info.pieces),
-		pieceLength: bto.info.pieceLength,
-		length:      bto.info.length,
-		name:        bto.info.name,
+		Announce:    bto.announce,
+		InfoHash:    [20]byte(sha1.Sum(encodedInfo)),
+		PieceHashes: toHashes(bto.info.pieces),
+		PieceLength: bto.info.pieceLength,
+		Length:      bto.info.length,
+		Name:        bto.info.name,
 	}
+
+	// fmt.Println(string(h.Sum(encodeBencode(bto.info))))
 
 	return ti
 }

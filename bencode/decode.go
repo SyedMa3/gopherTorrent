@@ -42,13 +42,12 @@ import (
 // 	fmt.Printf("Parsed torrentfile: %+v\n", ti)
 // }
 
-func decodeBencode(r *bufio.Reader) (BencodeValue, error) {
+// returns the decoded BencodeValue struct
+func DecodeBencode(r *bufio.Reader) (BencodeValue, error) {
 	b, err := r.Peek(1)
 	if err != nil {
 		return nil, err
 	}
-
-	// fmt.Println(string(b[0]))
 
 	switch b[0] {
 	case 'i':
@@ -93,7 +92,7 @@ func decodeString(r *bufio.Reader) (string, error) {
 		length += string(b)
 	}
 	l, err := strconv.ParseInt(length, 10, 64)
-	// fmt.Println(l)
+
 	if err != nil {
 		return "", err
 	}
@@ -114,7 +113,8 @@ func decodeList(r *bufio.Reader) ([]BencodeValue, error) {
 			r.ReadByte() // consume 'e'
 			break
 		}
-		value, err := decodeBencode(r)
+
+		value, err := DecodeBencode(r)
 		if err != nil {
 			return nil, err
 		}
@@ -128,19 +128,21 @@ func decodeDict(r *bufio.Reader) (map[string]BencodeValue, error) {
 	dict := make(map[string]BencodeValue)
 	for {
 		b, err := r.Peek(1)
-		// fmt.Println(string(b))
 		if err != nil {
 			return nil, err
 		}
+
 		if b[0] == 'e' {
 			r.ReadByte() // consume 'e'
 			break
 		}
+
 		key, err := decodeString(r)
 		if err != nil {
 			return nil, err
 		}
-		value, err := decodeBencode(r)
+
+		value, err := DecodeBencode(r)
 		if err != nil {
 			return nil, err
 		}
