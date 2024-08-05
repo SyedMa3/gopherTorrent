@@ -1,7 +1,10 @@
 package bencode
 
 import (
+	"bufio"
 	"crypto/sha1"
+	"fmt"
+	"os"
 )
 
 type bencodeInfo struct {
@@ -57,12 +60,12 @@ func toHashes(pieces string) [][20]byte {
 	return hashes
 }
 
-func (bto BencodeTorrent) ToTorrentInfo() TorrentInfo {
+func (bto BencodeTorrent) ToTorrentInfo() *TorrentInfo {
 	encodedInfo := encodeInfo(bto.info)
 
 	// fmt.Println("ss", (sha1.Sum(encodedInfo)))
 
-	ti := TorrentInfo{
+	ti := &TorrentInfo{
 		Announce:    bto.announce,
 		InfoHash:    [20]byte(sha1.Sum(encodedInfo)),
 		PieceHashes: toHashes(bto.info.pieces),
@@ -74,4 +77,28 @@ func (bto BencodeTorrent) ToTorrentInfo() TorrentInfo {
 	// fmt.Println(string(h.Sum(encodeBencode(bto.info))))
 
 	return ti
+}
+
+func FileToTorrentInfo(filePath string) (*TorrentInfo, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		fmt.Printf("Error opening file: %v\n", err)
+		return nil, err
+	}
+	defer file.Close()
+
+	reader := bufio.NewReader(file)
+	result, err := DecodeBencode(reader)
+	if err != nil {
+		fmt.Printf("Error decoding bencode: %v\n", err)
+		return nil, err
+	}
+
+	newResult := result.(map[string]BencodeValue)
+
+	bto := NewBencodeTorrent(newResult)
+
+	ti := bto.ToTorrentInfo()
+
+	return ti, nil
 }

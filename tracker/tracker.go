@@ -16,6 +16,12 @@ type Peer struct {
 	Port uint16
 }
 
+const peerID string = "js8uJhsyw64mKJi9tyRa"
+
+func GetPeerID() string {
+	return peerID
+}
+
 // func main() {
 // 	filename := "debian-12.6.0-amd64-netinst.iso.torrent"
 // 	file, err := os.Open(filename)

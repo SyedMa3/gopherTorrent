@@ -40,7 +40,7 @@ func encodeBencode(s reflect.Value) []byte {
 		return encodeList(s.Interface().([]BencodeValue))
 	default:
 		fmt.Println(reflect.TypeOf(s))
-		fmt.Errorf("unkown decoded type %s", s)
+		fmt.Printf("unkown decoded type %s", s)
 		return nil
 	}
 }
