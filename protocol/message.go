@@ -19,6 +19,19 @@ const (
 	MsgCancel
 )
 
+type BitField []byte
+
+func (bf BitField) HasPiece(index int) bool {
+	byteIndex := index / 8
+	offset := index % 8
+
+	if byteIndex < 0 || byteIndex >= len(bf) {
+		return false
+	}
+
+	return (bf[byteIndex])>>(uint8(7-offset))&1 != 0
+}
+
 type Message struct {
 	Type    messageType
 	Payload []byte
