@@ -30,6 +30,25 @@ type TorrentInfo struct {
 
 type BencodeValue interface{}
 
+func (ti *TorrentInfo) CalculatePieceSize(index int) int {
+	begin := int64(index) * ti.PieceLength
+	end := begin + ti.PieceLength
+	if end > ti.Length {
+		end = ti.Length
+	}
+
+	return int(end - begin)
+}
+
+func (ti *TorrentInfo) CalculateBoundsForPiece(index int) (int, int) {
+	begin := int64(index) * ti.PieceLength
+	end := begin + ti.PieceLength
+	if end > ti.Length {
+		end = ti.Length
+	}
+
+	return int(begin), int(end)
+}
 func NewBencodeTorrent(result map[string]BencodeValue) *BencodeTorrent {
 	bto := &BencodeTorrent{
 		announce: result["announce"].(string),

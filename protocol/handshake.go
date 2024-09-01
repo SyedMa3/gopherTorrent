@@ -44,7 +44,7 @@ func DeserializeHandshake(r io.Reader) (*Handshake, error) {
 		return nil, err
 	}
 
-	handshakeBuf := make([]byte, 49+pstrLen)
+	handshakeBuf := make([]byte, 48+pstrLen)
 	_, err = io.ReadFull(r, handshakeBuf)
 	if err != nil {
 		return nil, err
